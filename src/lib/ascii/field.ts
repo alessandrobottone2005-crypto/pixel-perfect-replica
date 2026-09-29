@@ -132,7 +132,7 @@ export function renderTextField(
     [...line].forEach((ch, j) => {
       ctx.textAlign = "left";
       ctx.fillText(ch, x, y);
-      x += widths[j];
+      x += widths[j]!;
     });
     ctx.textAlign = "center";
   });
@@ -140,6 +140,6 @@ export function renderTextField(
 
   const data = ctx.getImageData(0, 0, cols, rows).data;
   for (let i = 0; i < cols * rows; i++) {
-    out[i] = data[i * 4 + 3] / 255;
+    out[i] = data[i * 4 + 3]! / 255;
   }
 }

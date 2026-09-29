@@ -42,7 +42,7 @@ export function exportSVG(grid: Grid, s: StudioState, width: number, height: num
       const jy = s.jitter > 0 ? (hash01(x, y, 2) - 0.5) * s.jitter * cellH * 1.4 : 0;
       const color =
         s.colorMode === "matrix"
-          ? `hsl(128,92%,${Math.min(92, 24 + grid.bright[i] * 62).toFixed(0)}%)`
+          ? `hsl(128,92%,${Math.min(92, 24 + grid.bright[i]! * 62).toFixed(0)}%)`
           : s.inkColor;
       const esc = ch.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       parts.push(

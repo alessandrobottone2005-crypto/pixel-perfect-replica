@@ -52,7 +52,7 @@ export function SliderField({
         min={min}
         max={max}
         step={step}
-        onValueChange={(v) => onChange(v[0])}
+        onValueChange={(v) => onChange(v[0]!)}
       />
     </div>
   );

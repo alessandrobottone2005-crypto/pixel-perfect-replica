@@ -118,7 +118,7 @@ export function AsciiStudio() {
       if (s.fgMode === "text") {
         if (textDirty.current) {
           renderTextField(bufs.fg, cols, rows, s);
-          for (let i = 0; i < size; i++) bufs.mask[i] = bufs.fg[i] > 0.12 ? 1 : 0;
+          for (let i = 0; i < size; i++) bufs.mask[i] = bufs.fg[i]! > 0.12 ? 1 : 0;
           textDirty.current = false;
         }
         hasFg = true;
