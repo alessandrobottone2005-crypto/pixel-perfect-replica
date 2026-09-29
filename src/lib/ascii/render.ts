@@ -56,8 +56,9 @@ export function composeGrid(
         }
         if (sx >= 0 && sx < cols && sy >= 0 && sy < rows) {
           const j = sy * cols + sx;
-          fgVal = fg[j];
-          covered = fgMask[j];
+          fgVal = fg[j]!;
+          covered = fgMask[j]!;
+
         }
       }
 
@@ -67,7 +68,7 @@ export function composeGrid(
         b = s.fgMode === "text" ? Math.min(1, 0.35 + fgVal * 0.85) : fgVal;
         fgFlag = 1;
       } else {
-        b = bg[i];
+        b = bg[i]!;
         fgFlag = 0;
       }
 
@@ -76,7 +77,7 @@ export function composeGrid(
         const r = hash01(x, y, bucket);
         if (r < s.glitch) {
           const pool = fgFlag ? fgRamp : bgRamp;
-          ch = pool[Math.floor(hash01(y, x, bucket + 7) * pool.length) % pool.length];
+          ch = pool[Math.floor(hash01(y, x, bucket + 7) * pool.length) % pool.length] ?? ch;
         }
       }
       chars[i] = ch;
@@ -147,12 +148,13 @@ export function drawGrid(
           jx = (hash01(x, y, 1) - 0.5) * s.jitter * cellW * 2.2;
           jy = (hash01(x, y, 2) - 0.5) * s.jitter * cellH * 1.4;
         }
-        ctx.fillStyle = pass.color ?? colorFor(s, grid.bright[i], grid.isFg[i] === 1);
+        ctx.fillStyle = pass!.color ?? colorFor(s, grid.bright[i]!, grid.isFg[i] === 1);
         ctx.fillText(
           ch,
-          x * cellW + cellW / 2 + jx + pass.dx,
-          y * cellH + cellH / 2 + jy + pass.dy,
+          x * cellW + cellW / 2 + jx + pass!.dx,
+          y * cellH + cellH / 2 + jy + pass!.dy,
         );
+
       }
     }
   }
