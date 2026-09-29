@@ -24,7 +24,7 @@ export function AsciiStudio() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<Grid | null>(null);
-  const orbitRef = useRef<OrbitState>({ azimuth: 0.7, polar: 1.15, radius: 5.2 });
+  const orbitRef = useRef<OrbitState>({ azimuth: 0.7, polar: 1.15, radius: 8 });
   const threeRef = useRef<ThreeLayer | null>(null);
   const buffersRef = useRef<{
     bg: Float32Array;
