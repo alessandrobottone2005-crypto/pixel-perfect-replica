@@ -132,10 +132,12 @@ export class ThreeLayer {
       const dst = y * this.w;
       for (let x = 0; x < this.w; x++) {
         const i = (src + x) * 4;
-        const a = px[i + 3];
+        const a = px[i + 3]!;
         mask[dst + x] = a > 8 ? 1 : 0;
-        lum[dst + x] = a > 8 ? (px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114) / 255 : 0;
+        lum[dst + x] =
+          a > 8 ? (px[i]! * 0.299 + px[i + 1]! * 0.587 + px[i + 2]! * 0.114) / 255 : 0;
       }
+
     }
   }
 
