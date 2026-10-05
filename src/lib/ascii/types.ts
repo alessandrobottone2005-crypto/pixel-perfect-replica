@@ -1,8 +1,10 @@
 export type BackgroundKind = "none" | "simplex" | "matrix" | "scanlines" | "waves";
-export type ForegroundMode = "none" | "text" | "shape";
-export type ShapeKind = "torusKnot" | "sphere" | "metaballs";
+export type ForegroundMode = "none" | "text" | "shape" | "media";
+export type ShapeKind = "torusKnot" | "sphere" | "metaballs" | "custom";
 export type RampKey = "standard" | "code" | "blocks" | "custom";
-export type ColorMode = "dual" | "matrix" | "rgbsplit";
+export type ColorMode = "dual" | "matrix" | "rgbsplit" | "fullcolor" | "gradient";
+export type DitherKind = "none" | "floyd" | "bayer";
+export type AudioTarget = "none" | "glitch" | "wave" | "jitter" | "rotation" | "contrast";
 export type AspectKey = "square" | "reel" | "a3";
 export type FontKey = "mono" | "serif" | "sans";
 
@@ -69,6 +71,30 @@ export type StudioState = {
   speed: number;
   zRotation: number;
   waveFrequency: number;
+
+  // media source
+  mediaBrightness: number;
+  mediaContrast: number;
+  mediaMirror: boolean;
+
+  // advanced rendering
+  edges: boolean;
+  edgeThreshold: number;
+  dither: DitherKind;
+  ditherAmount: number;
+  gradA: string;
+  gradB: string;
+  crt: boolean;
+  crtCurve: number;
+  crtBloom: number;
+  crtScanlines: number;
+  crtInExport: boolean;
+
+  // audio reactivity
+  audioBass: AudioTarget;
+  audioMid: AudioTarget;
+  audioHigh: AudioTarget;
+  audioGain: number;
 };
 
 export const DEFAULT_STATE: StudioState = {
@@ -109,7 +135,34 @@ export const DEFAULT_STATE: StudioState = {
   speed: 1,
   zRotation: 0.25,
   waveFrequency: 1.2,
+
+  mediaBrightness: 0,
+  mediaContrast: 1.2,
+  mediaMirror: true,
+
+  edges: false,
+  edgeThreshold: 0.35,
+  dither: "none",
+  ditherAmount: 1,
+  gradA: "#ff3d7f",
+  gradB: "#3de0ff",
+  crt: false,
+  crtCurve: 0.25,
+  crtBloom: 0.5,
+  crtScanlines: 0.5,
+  crtInExport: true,
+
+  audioBass: "wave",
+  audioMid: "jitter",
+  audioHigh: "glitch",
+  audioGain: 1,
 };
+
+export function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16) || 0;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
 
 export function rampChars(cfg: RampConfig): string {
   if (cfg.preset === "custom") return cfg.custom.length > 0 ? cfg.custom : " ";
