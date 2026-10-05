@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Copy, Download, FileCode2, Layers, Regex, Sliders, Video, Zap } from "lucide-react";
+import { ExtraPanels, FilePick, MediaControls, type StudioActions } from "./ExtraPanels";
 import { Field, SectionNote, SelectField, SliderField } from "./controls";
 import {
   RAMPS,
@@ -25,6 +26,7 @@ type Props = {
   onWebm: () => void;
   onCopy: () => void;
   recording: boolean;
+  actions: StudioActions;
 };
 
 function RampEditor({
@@ -75,7 +77,7 @@ function RampEditor({
   );
 }
 
-export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording }: Props) {
+export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording, actions }: Props) {
   return (
     <Accordion
       type="multiple"
@@ -129,11 +131,12 @@ export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording }
 
           <div className="space-y-3 rounded-md border border-border/60 bg-card/40 p-3">
             <p className="text-[10px] uppercase tracking-[0.22em] text-foreground/50">Foreground</p>
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-4 gap-1">
               {(
                 [
                   { v: "text", l: "Type" },
                   { v: "shape", l: "3D" },
+                  { v: "media", l: "Media" },
                   { v: "none", l: "Off" },
                 ] as const
               ).map((m) => (
@@ -209,6 +212,7 @@ export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording }
               </>
             )}
 
+            {s.fgMode === "media" && <MediaControls s={s} set={set} a={actions} />}
             {s.fgMode === "shape" && (
               <>
                 <SelectField
@@ -219,8 +223,10 @@ export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording }
                     { value: "torusKnot", label: "Torus Knot" },
                     { value: "sphere", label: "Sphere" },
                     { value: "metaballs", label: "Metaballs" },
+                    { value: "custom", label: "Custom model" },
                   ]}
                 />
+                <FilePick accept=".obj,.gltf,.glb" label={actions.modelName || "Upload .obj / .gltf / .glb"} onFile={actions.onModelFile} />
                 <SectionNote>Drag the canvas to orbit, scroll to dolly.</SectionNote>
                 <SliderField
                   label="Light X"
@@ -299,6 +305,8 @@ export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording }
               { value: "dual", label: "Dual Tone" },
               { value: "matrix", label: "Matrix Green" },
               { value: "rgbsplit", label: "RGB Split" },
+              { value: "fullcolor", label: "Full color" },
+              { value: "gradient", label: "Gradient" },
             ]}
           />
           {s.colorMode !== "matrix" && (
@@ -318,6 +326,16 @@ export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording }
                   onChange={(e) => set({ paperColor: e.target.value })}
                   className="h-8 w-full cursor-pointer rounded-sm border border-border bg-transparent"
                 />
+              </Field>
+            </div>
+          )}
+          {s.colorMode === "gradient" && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Dark">
+                <input type="color" value={s.gradA} onChange={(e) => set({ gradA: e.target.value })} className="h-8 w-full cursor-pointer rounded-sm border border-border bg-transparent" />
+              </Field>
+              <Field label="Bright">
+                <input type="color" value={s.gradB} onChange={(e) => set({ gradB: e.target.value })} className="h-8 w-full cursor-pointer rounded-sm border border-border bg-transparent" />
               </Field>
             </div>
           )}
@@ -368,6 +386,7 @@ export function ControlPanel({ s, set, onPng, onSvg, onWebm, onCopy, recording }
         </AccordionContent>
       </AccordionItem>
 
+      <ExtraPanels s={s} set={set} a={actions} />
       <AccordionItem value="export" className="border-b-0 border-border/60">
         <AccordionTrigger className="px-4 text-[11px] uppercase tracking-[0.2em] hover:no-underline">
           <span className="flex items-center gap-2">
