@@ -45,10 +45,43 @@ export class ThreeLayer {
     }
   }
 
+  private custom: THREE.Object3D | null = null;
+
+  /** Installs a user-supplied model, centred and scaled to fit the scene. */
+  setCustomModel(obj: THREE.Object3D) {
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const scale = 2.8 / Math.max(size.x, size.y, size.z, 1e-6);
+    obj.position.sub(center.multiplyScalar(scale));
+    obj.scale.multiplyScalar(scale);
+    obj.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      const old = (Array.isArray(m.material) ? m.material[0] : m.material) as
+        | (THREE.Material & { color?: THREE.Color; map?: THREE.Texture | null })
+        | undefined;
+      m.material = new THREE.MeshStandardMaterial({
+        color: old?.color ? old.color.clone() : new THREE.Color(0xffffff),
+        map: old?.map ?? null,
+        roughness: 0.45,
+        metalness: 0.05,
+      });
+    });
+    const wrapper = new THREE.Group();
+    wrapper.add(obj);
+    this.custom = wrapper;
+    this.shapeKind = null; // force rebuild
+  }
+
+  get hasCustom() {
+    return this.custom !== null;
+  }
+
   private buildShape(kind: ShapeKind) {
     if (this.mesh) {
       this.group.remove(this.mesh);
-      this.mesh.traverse((o) => {
+      if (this.mesh !== this.custom) this.mesh.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.geometry) m.geometry.dispose();
       });
@@ -59,7 +92,14 @@ export class ThreeLayer {
       metalness: 0.08,
     });
     let obj: THREE.Object3D;
-    if (kind === "torusKnot") {
+    if (kind === "custom") {
+      if (!this.custom) {
+        this.mesh = null;
+        this.shapeKind = kind;
+        return;
+      }
+      obj = this.custom;
+    } else if (kind === "torusKnot") {
       obj = new THREE.Mesh(new THREE.TorusKnotGeometry(1, 0.34, 180, 28), material);
     } else if (kind === "sphere") {
       obj = new THREE.Mesh(new THREE.SphereGeometry(1.35, 64, 48), material);
@@ -91,10 +131,15 @@ export class ThreeLayer {
     s: StudioState,
     orbit: OrbitState,
     time: number,
+    rgb?: Uint8ClampedArray,
   ) {
     if (this.shapeKind !== s.shape) this.buildShape(s.shape);
     const obj = this.mesh;
-    if (!obj) return;
+    if (!obj) {
+      lum.fill(0);
+      mask.fill(0);
+      return;
+    }
 
     obj.rotation.z = time * s.zRotation;
     obj.rotation.x = Math.sin(time * 0.35 * s.waveFrequency) * 0.35;
@@ -136,6 +181,12 @@ export class ThreeLayer {
         mask[dst + x] = a > 8 ? 1 : 0;
         lum[dst + x] =
           a > 8 ? (px[i]! * 0.299 + px[i + 1]! * 0.587 + px[i + 2]! * 0.114) / 255 : 0;
+        if (rgb) {
+          const o = (dst + x) * 3;
+          rgb[o] = px[i]!;
+          rgb[o + 1] = px[i + 1]!;
+          rgb[o + 2] = px[i + 2]!;
+        }
       }
 
     }
@@ -145,4 +196,20 @@ export class ThreeLayer {
     this.target.dispose();
     this.renderer.dispose();
   }
+}
+
+/** Parses an .obj / .gltf / .glb file into a Three.js object. */
+export async function loadModelFile(file: File): Promise<THREE.Object3D> {
+  const ext = file.name.toLowerCase().split(".").pop();
+  if (ext === "obj") {
+    const { OBJLoader } = await import("three/examples/jsm/loaders/OBJLoader.js");
+    return new OBJLoader().parse(await file.text());
+  }
+  if (ext === "gltf" || ext === "glb") {
+    const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
+    const buf = await file.arrayBuffer();
+    const gltf = await new GLTFLoader().parseAsync(buf, "");
+    return gltf.scene;
+  }
+  throw new Error("Unsupported model format (use .obj, .gltf or .glb)");
 }
